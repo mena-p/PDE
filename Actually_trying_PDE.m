@@ -2,8 +2,8 @@ clear variables;
 close all;
 
 % Intervalle
-Intx = [0 1000];
-Inty = [-500 500];
+Intx = [200 500];
+Inty = [-100 100];
 
 % Dirichlet und Neumann Funktionen
 gD = @(x,y) y*(1-y);
@@ -13,7 +13,7 @@ Boundary_condition = @(x,y) 400;
 % Quellterm
 f = @(x,y) 0; 
 
-n = 9;
+n = 7;
 nx = 2^n;
 ny = 2^n;
 
@@ -91,12 +91,12 @@ end
 for i = 1:Nx % Untere Kante
     A(i,:) = 0;
     A(i,i) = 1;
-    F(i) = 1;
+    F(i) = 0;
 end
 for i = 1:Nx % Obere Kante
     A((Ny-1)*Nx+i,:) = 0;
     A((Ny-1)*Nx+i,(Ny-1)*Nx+i) = 1;
-    F((Ny-1)*Nx+i) = 1;
+    F((Ny-1)*Nx+i) = 0;
 end
 
 % Loesung des linearen GLS
@@ -104,9 +104,11 @@ T = A\F;
 
 % Plot der Loesung
 Z = zeros(Nx,Ny);
+velocity = zeros(Nx,Ny);
 for i = 1:Nx
     for j = 1:Ny
-        Z(i,j) = T((j-1)*Nx+i); % quando quiser mudar o x,y troque i e j no Z(i,j). No momento está como no original
+        Z(j,i) = T((j-1)*Nx+i); % quando quiser mudar o x,y troque i e j no Z(i,j). No momento está trocado
+        velocity(j,i) = vx((j-1)*Nx+i); % aqui também está trocado
     end
 end  
 
@@ -117,10 +119,16 @@ xlabel('x-Achse')
 ylabel('y-Achse')
 
 figure
-surf(nodes_x,nodes_y,Z','EdgeColor','none');       
-shading interp
-title({'2-D Laplace''s Gleichung'})
+contourf(velocity',10)
+title({'Updraft velocity'})
 xlabel('x-Achse')
 ylabel('y-Achse')
-zlabel('Temperatur T')
+
+figure
+surf(nodes_y,nodes_x,Z','EdgeColor','none');       
+shading interp
+title({'Moisture'})
+xlabel('x-Achse (position,m)')
+ylabel('y-Achse (height,m)')
+zlabel('concentration [mol/m^3]')
 

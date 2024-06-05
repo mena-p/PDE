@@ -5,6 +5,6 @@ function flux = BC_discontinuous_FD(x,y)
     else
         flux = 0;
     end
-    %flux = 400;
+    flux = 400;
 end
 
