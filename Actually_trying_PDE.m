@@ -7,7 +7,7 @@ intx = [200 500];  % this is the height
 inty = [-100 100]; % this is the horizontal position
 
 % Set the amount of grid points (change only the n)
-n = 9;
+n = 7;
 nx = 2^n;
 ny = 2^n;
 %% Physical parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,8 +20,7 @@ D = 0.000025; % m^2/s
 
 % Boundary conditions
 dirichlet = @(x,y) 0; % Humidity concentration on the left and right edges of the domain, mol/m^3
-neumann = @(x,y) 400; % Humidity concentration gradient (flux) on top and bottom of domain, (mol/m^3)/m
-Boundary_condition = @(x,y) 400;
+neumann = @(x,y) -413; %BC_normal_FD(x,y); % Humidity concentration gradient (flux) on top and bottom of domain, (mol/m^3)/m
 
 % Choosen updraft velocity function
 % note: you can choose any function of x,y that returns a scalar. However,
@@ -97,14 +96,14 @@ for j=2:Ny-1 % Right edge of domain (top of thermal)
     % Backwards difference to approximate derivative
     A((j-1)*Nx+Nx,(j-1)*Nx+Nx-1) = -1;
     A((j-1)*Nx+Nx,(j-1)*Nx+Nx) = 1;
-    F((j-1)*Nx+Nx) = -hx*neumann((Nx-1)*hx,(j-1)*hy);
+    F((j-1)*Nx+Nx) = hx*neumann((Nx-1)*hx,(j-1)*hy);
 end
 for j=2:Ny-1 % Left edge of domain (surface)
     A((j-1)*Nx+1,:) = 0;
     % Forwards difference to approximate derivative
     A((j-1)*Nx+1,(j-1)*Nx+1) = -1;
     A((j-1)*Nx+1,(j-1)*Nx+1+1) = 1;
-    F((j-1)*Nx+1) = -hx*neumann((1-1)*hx,(j-1)*hy);
+    F((j-1)*Nx+1) = hx*neumann((1-1)*hx,(j-1)*hy);
 end
 
 % Imposing Dirichlet boundary conditions
@@ -134,6 +133,13 @@ for i = 1:Nx
 end  
 
 % Plot everything
+
+flux = BC_normal_FD(0,nodes_y);
+figure
+plot(nodes_y,flux)
+title({'Boundary condition on surface'})
+xlabel('Position')
+ylabel('dc/dx')
 
 % Humidity countour plot
 figure
