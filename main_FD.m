@@ -21,16 +21,16 @@ close all;
 % 
 % Choose 0 if you wish to play around with the parameters yourself.
 
-PRESET = 3;
+PRESET = 0;
 
 %% Simulation parameters
 
 % Domain size (meters)
-intx = [20 300]; % this is the height
+intx = [200 800]; % this is the height
 inty = [-50 50]; % this is the horizontal position
 
 % Set the amount of grid points (change only the n)
-n = 8;
+n = 7;
 nx = 2^n;
 ny = 2^n;
 %% Physical parameters
@@ -46,7 +46,7 @@ D = 0.000025; % m^2/s
 % neumann condition. Other possible choices are BC_normal_FD(x,y) or 
 % BC_discontinous_FD(x,y), but they yield crappy results.
 
-dirichlet = @(x,y) 0.5; % Humidity concentration on the left and right 
+dirichlet = @(x,y) 0.0; % Humidity concentration on the left and right 
                         % edges of the domain, mol/m^3
 
 % a value 100000x smaller than the one I derived in the write-up yields
@@ -66,20 +66,24 @@ velocity = @(height,position) allen(position,height,4,1000,250000,0);
 
 %% Parameters for the pre-defined cases
 
-% Domain size (meters)
-intx = [20 500]; % this is the height
-inty = [-50 50]; % this is the horizontal position
+if PRESET ~= 0
 
-% Set the amount of grid points
-n = 8;
-nx = 2^n;
-ny = 2^n;
+    % Domain size (meters)
+    intx = [200 500]; % this is the height
+    inty = [-50 50]; % this is the horizontal position
+    
+    % Set the amount of grid points
+    n = 8;
+    nx = 2^n;
+    ny = 2^n;
+    
+    % Source therm
+    f = @(x,y) 0;
+    
+    % Diffusivity of water vapor in air
+    D = 0.000025; % m^2/s
 
-% Source therm
-f = @(x,y) 0;
-
-% Diffusivity of water vapor in air
-D = 0.000025; % m^2/s
+end
 
 if PRESET == 1
 
@@ -256,28 +260,28 @@ start_y = nodes_y(1,1);
 for j=2:Ny-1 % Right edge of domain (top of thermal)
     A((j-1)*Nx+Nx,:) = 0;
     % Backwards difference to approximate derivative
-    A((j-1)*Nx+Nx,(j-1)*Nx+Nx-1) = -1;
-    A((j-1)*Nx+Nx,(j-1)*Nx+Nx) = 1;
-    F((j-1)*Nx+Nx) = hx*neumann_top(start_x+(Nx-1)*hx, start_y+(j-1)*hy);
+    A((j-1)*Nx+Nx,(j-1)*Nx+Nx-1) = D;
+    A((j-1)*Nx+Nx,(j-1)*Nx+Nx) = hx*velocity(start_x+(Nx-1)*hx, start_y+(j-1)*hy) - D;
+    F((j-1)*Nx+Nx) = -hx*0.01*BC_normal_FD(start_x+(Nx-1)*hx, start_y+(j-1)*hy)/413; %neumann_top(start_x+(Nx-1)*hx, start_y+(j-1)*hy);
 end
 for j=2:Ny-1 % Left edge of domain (surface)
     A((j-1)*Nx+1,:) = 0;
     % Forwards difference to approximate derivative
-    A((j-1)*Nx+1,(j-1)*Nx+1) = -1;
-    A((j-1)*Nx+1,(j-1)*Nx+1+1) = 1;
-    F((j-1)*Nx+1) = hx*neumann_sur(start_x+(1-1)*hx, start_y+(j-1)*hy);
+    A((j-1)*Nx+1,(j-1)*Nx+1) = hx*velocity(start_x,start_y+(j-1)*hy) + D;
+    A((j-1)*Nx+1,(j-1)*Nx+1+1) = -1*D;
+    F((j-1)*Nx+1) = -hx*0.01*BC_normal_FD(start_x,start_y+(j-1)*hy)/413; %neumann_sur(start_x+(1-1)*hx, start_y+(j-1)*hy);
 end
 
 % Imposing Dirichlet boundary conditions
 for i = 1:Nx % Lower edge (right side of thermal)
     A(i,:) = 0;
     A(i,i) = 1;
-    F(i) = 0;
+    F(i) = dirichlet(start_x+(i-1)*hx, start_y);
 end
 for i = 1:Nx % Upper edge (left side of thermal)
     A((Ny-1)*Nx+i,:) = 0;
     A((Ny-1)*Nx+i,(Ny-1)*Nx+i) = 1;
-    F((Ny-1)*Nx+i) = 0;
+    F((Ny-1)*Nx+i) = dirichlet(start_x+(i-1)*hx, start_y+(Ny-1)*hy);
 end
 %% Solution and plotting
 
