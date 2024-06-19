@@ -26,7 +26,7 @@ PRESET = 0;
 %% Simulation parameters
 
 % Domain size (meters)
-intx = [200 800]; % this is the height
+intx = [15 500]; % this is the height
 inty = [-50 50]; % this is the horizontal position
 
 % Set the amount of grid points (change only the n)
@@ -69,7 +69,7 @@ velocity = @(height,position) allen(position,height,4,1000,250000,0);
 if PRESET ~= 0
 
     % Domain size (meters)
-    intx = [200 500]; % this is the height
+    intx = [20 500]; % this is the height
     inty = [-50 50]; % this is the horizontal position
     
     % Set the amount of grid points
@@ -262,14 +262,14 @@ for j=2:Ny-1 % Right edge of domain (top of thermal)
     % Backwards difference to approximate derivative
     A((j-1)*Nx+Nx,(j-1)*Nx+Nx-1) = D;
     A((j-1)*Nx+Nx,(j-1)*Nx+Nx) = hx*velocity(start_x+(Nx-1)*hx, start_y+(j-1)*hy) - D;
-    F((j-1)*Nx+Nx) = -hx*0.01*BC_normal_FD(start_x+(Nx-1)*hx, start_y+(j-1)*hy)/413; %neumann_top(start_x+(Nx-1)*hx, start_y+(j-1)*hy);
+    F((j-1)*Nx+Nx) = -hx*BC_normal_FD(start_x+(Nx-1)*hx, start_y+(j-1)*hy); %neumann_top(start_x+(Nx-1)*hx, start_y+(j-1)*hy);
 end
 for j=2:Ny-1 % Left edge of domain (surface)
     A((j-1)*Nx+1,:) = 0;
     % Forwards difference to approximate derivative
     A((j-1)*Nx+1,(j-1)*Nx+1) = hx*velocity(start_x,start_y+(j-1)*hy) + D;
     A((j-1)*Nx+1,(j-1)*Nx+1+1) = -1*D;
-    F((j-1)*Nx+1) = -hx*0.01*BC_normal_FD(start_x,start_y+(j-1)*hy)/413; %neumann_sur(start_x+(1-1)*hx, start_y+(j-1)*hy);
+    F((j-1)*Nx+1) = -hx*BC_normal_FD(start_x,start_y+(j-1)*hy); %neumann_sur(start_x+(1-1)*hx, start_y+(j-1)*hy);
 end
 
 % Imposing Dirichlet boundary conditions
