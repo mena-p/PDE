@@ -21,7 +21,7 @@ close all;
 % 
 % Choose 0 if you wish to play around with the parameters yourself.
 
-PRESET = 0;
+PRESET = 3;
 
 %% Simulation parameters
 
@@ -251,19 +251,21 @@ end
 %% Boundary conditions
 
 % Imposing Neumann boundary conditions
+start_x = nodes_x(1,1);
+start_y = nodes_y(1,1);
 for j=2:Ny-1 % Right edge of domain (top of thermal)
     A((j-1)*Nx+Nx,:) = 0;
     % Backwards difference to approximate derivative
     A((j-1)*Nx+Nx,(j-1)*Nx+Nx-1) = -1;
     A((j-1)*Nx+Nx,(j-1)*Nx+Nx) = 1;
-    F((j-1)*Nx+Nx) = hx*neumann_top((Nx-1)*hx,(j-1)*hy);
+    F((j-1)*Nx+Nx) = hx*neumann_top(start_x+(Nx-1)*hx, start_y+(j-1)*hy);
 end
 for j=2:Ny-1 % Left edge of domain (surface)
     A((j-1)*Nx+1,:) = 0;
     % Forwards difference to approximate derivative
     A((j-1)*Nx+1,(j-1)*Nx+1) = -1;
     A((j-1)*Nx+1,(j-1)*Nx+1+1) = 1;
-    F((j-1)*Nx+1) = hx*neumann_sur((1-1)*hx,(j-1)*hy);
+    F((j-1)*Nx+1) = hx*neumann_sur(start_x+(1-1)*hx, start_y+(j-1)*hy);
 end
 
 % Imposing Dirichlet boundary conditions
