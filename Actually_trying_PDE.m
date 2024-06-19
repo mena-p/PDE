@@ -310,6 +310,7 @@ contourf(nodes_y,nodes_x,C',10)
 title('Water vapor')
 xlabel('position, m')
 ylabel('height, m')
+colorbar
 
 % Velocity countour plot
 figure
