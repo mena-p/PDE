@@ -5,7 +5,7 @@ close all;
 % Hi, Nils. This is the code used to generate the results in the write-up.
 % You can alter the simulation and physical parameters in their respective
 % sections. You don't need to change anything else in the code.
-
+%
 % The set-up section creates the grid and the vector with velocities in
 % the lexicographic order, which we need to create the matrix implementing
 % the five difference star in the section after that. The matrix is altered
@@ -24,38 +24,44 @@ close all;
 PRESET = 0;
 
 %% Simulation parameters
-
+% These only apply if you choose the PRESET 0
 % Domain size (meters)
-intx = [15 500]; % this is the height
+intx = [20 500]; % this is the height
 inty = [-50 50]; % this is the horizontal position
 
 % Set the amount of grid points (change only the n)
-n = 7;
+n = 8;
 nx = 2^n;
 ny = 2^n;
 %% Physical parameters
-
+% These only apply if you choose the PRESET 0
 % Source therm
 f = @(x,y) 0; % zero since there is no chemical reaction
 
 % Diffusivity of water vapor in air
 D = 0.000025; % m^2/s
 
-% Boundary conditions
+%% Boundary conditions
 % note: any function of x, y that returns a scalar can be used as a 
-% neumann condition. Other possible choices are BC_normal_FD(x,y) or 
-% BC_discontinous_FD(x,y), but they yield crappy results.
+% condition. Don't forget to set the correct flag BC_TYPE!
+
+% Boundary condition on left and right of domain
 
 dirichlet = @(x,y) 0.0; % Humidity concentration on the left and right 
                         % edges of the domain, mol/m^3
 
-% a value 100000x smaller than the one I derived in the write-up yields
-% physical results :/
+% Boundary conditions on surface and top
 
-neumann_top = @(x,y) -0.00413; % Humidity concentration gradient (flux) on 
-                               % top of domain, (mol/m^3)/m
-neumann_sur = @(x,y) -0.00413; % Humidity concentration gradient (flux) at 
-                               % the surface, (mol/m^3)/m
+
+neumann_top = @(x,y) -0.00413; % Humidity concentration gradient (flux) 
+                               % on top of domain, (mol/m^3)/m
+neumann_sur = @(x,y) -0.00413; % Humidity concentration gradient (flux)
+                               % at the surface, (mol/m^3)/m
+
+total_flux = @(x,y) BC_total_flux_FD(x,y);
+
+BC_TYPE = "t";  % choose "n" or "t" to impose neumann or total flux
+                % conditions to the left and right boundaries
 
 % Updraft velocity function
 % note: you can choose any function of x, y that returns a scalar, but 
@@ -65,7 +71,7 @@ neumann_sur = @(x,y) -0.00413; % Humidity concentration gradient (flux) at
 velocity = @(height,position) allen(position,height,4,1000,250000,0);
 
 %% Parameters for the pre-defined cases
-
+% No need to change anything from this point on.
 if PRESET ~= 0
 
     % Domain size (meters)
@@ -73,7 +79,7 @@ if PRESET ~= 0
     inty = [-50 50]; % this is the horizontal position
     
     % Set the amount of grid points
-    n = 8;
+    n = 1;
     nx = 2^n;
     ny = 2^n;
     
@@ -82,6 +88,8 @@ if PRESET ~= 0
     
     % Diffusivity of water vapor in air
     D = 0.000025; % m^2/s
+
+    BC_TYPE = "n";
 
 end
 
@@ -254,22 +262,22 @@ end
 
 %% Boundary conditions
 
-% Imposing Neumann boundary conditions
+% Imposing total flux boundary conditions
 start_x = nodes_x(1,1);
 start_y = nodes_y(1,1);
 for j=2:Ny-1 % Right edge of domain (top of thermal)
     A((j-1)*Nx+Nx,:) = 0;
     % Backwards difference to approximate derivative
-    A((j-1)*Nx+Nx,(j-1)*Nx+Nx-1) = D;
-    A((j-1)*Nx+Nx,(j-1)*Nx+Nx) = hx*velocity(start_x+(Nx-1)*hx, start_y+(j-1)*hy) - D;
-    F((j-1)*Nx+Nx) = -hx*BC_normal_FD(start_x+(Nx-1)*hx, start_y+(j-1)*hy); %neumann_top(start_x+(Nx-1)*hx, start_y+(j-1)*hy);
+    A((j-1)*Nx+Nx,(j-1)*Nx+Nx-1) = -D;
+    A((j-1)*Nx+Nx,(j-1)*Nx+Nx) = -hx*velocity(start_x+(Nx-1)*hx, start_y+(j-1)*hy) + D;
+    F((j-1)*Nx+Nx) = hx*total_flux(start_x+(Nx-1)*hx, start_y+(j-1)*hy);
 end
 for j=2:Ny-1 % Left edge of domain (surface)
     A((j-1)*Nx+1,:) = 0;
     % Forwards difference to approximate derivative
     A((j-1)*Nx+1,(j-1)*Nx+1) = hx*velocity(start_x,start_y+(j-1)*hy) + D;
     A((j-1)*Nx+1,(j-1)*Nx+1+1) = -1*D;
-    F((j-1)*Nx+1) = -hx*BC_normal_FD(start_x,start_y+(j-1)*hy); %neumann_sur(start_x+(1-1)*hx, start_y+(j-1)*hy);
+    F((j-1)*Nx+1) = hx*total_flux(start_x,start_y+(j-1)*hy);
 end
 
 % Imposing Dirichlet boundary conditions
