@@ -30,7 +30,7 @@ intx = [20 500]; % this is the height
 inty = [-50 50]; % this is the horizontal position
 
 % Set the amount of grid points (change only the n)
-n = 8;
+n = 7;
 nx = 2^n;
 ny = 2^n;
 %% Physical parameters
@@ -42,7 +42,8 @@ f = @(x,y) 0; % zero since there is no chemical reaction
 D = 0.000025; % m^2/s
 
 %% Boundary conditions
-% note: any function of x, y that returns a scalar can be used as a 
+% These only apply if you choose PRESET 0
+% Any function of x, y that returns a scalar can be used as a 
 % condition. Don't forget to set the correct flag BC_TYPE!
 
 % Boundary condition on left and right of domain
@@ -50,8 +51,8 @@ D = 0.000025; % m^2/s
 dirichlet = @(x,y) 0.0; % Humidity concentration on the left and right 
                         % edges of the domain, mol/m^3
 
-% Boundary conditions on surface and top
 
+% Boundary conditions on surface and top
 
 neumann_top = @(x,y) -0.00413; % Humidity concentration gradient (flux) 
                                % on top of domain, (mol/m^3)/m
@@ -61,10 +62,10 @@ neumann_sur = @(x,y) -0.00413; % Humidity concentration gradient (flux)
 total_flux = @(x,y) BC_total_flux_FD(x,y);
 
 BC_TYPE = "t";  % choose "n" or "t" to impose neumann or total flux
-                % conditions to the left and right boundaries
+                % conditions to the top and surface boundaries
 
 % Updraft velocity function
-% note: you can choose any function of x, y that returns a scalar, but 
+% You can choose any function of x, y that returns a scalar, but 
 % keep in mind that y=location at surface and x=height in this 
 % implementation.
 
@@ -79,7 +80,7 @@ if PRESET ~= 0
     inty = [-50 50]; % this is the horizontal position
     
     % Set the amount of grid points
-    n = 1;
+    n = 8;
     nx = 2^n;
     ny = 2^n;
     
@@ -96,7 +97,7 @@ end
 if PRESET == 1
 
     % Boundary conditions
-    dirichlet = @(x,y) 0.5;
+    dirichlet = @(x,y) 0.0;
     neumann_top = @(x,y) 0;
     neumann_sur = @(x,y) 0;
    
@@ -105,7 +106,7 @@ if PRESET == 1
 elseif PRESET == 2
 
     % Boundary conditions
-    dirichlet = @(x,y) 0.5;
+    dirichlet = @(x,y) 0.0;
     neumann_top = @(x,y) -413;
     neumann_sur = @(x,y) -413;
     
@@ -114,7 +115,7 @@ elseif PRESET == 2
 elseif PRESET == 3
     
     % Boundary conditions
-    dirichlet = @(x,y) 0.5;
+    dirichlet = @(x,y) 0.0;
     neumann_top = @(x,y) BC_normal_FD(x,y);
     neumann_sur = @(x,y) BC_normal_FD(x,y);
     
@@ -123,7 +124,7 @@ elseif PRESET == 3
 elseif PRESET == 4
     
     % Boundary conditions
-    dirichlet = @(x,y) 0.5;
+    dirichlet = @(x,y) 0.0;
     neumann_top = @(x,y) -413;
     neumann_sur = @(x,y) 0;
     
@@ -132,7 +133,7 @@ elseif PRESET == 4
 elseif PRESET == 5
     
     % Boundary conditions
-    dirichlet = @(x,y) 0.5;
+    dirichlet = @(x,y) 0.0;
     neumann_top = @(x,y) BC_normal_FD(x,y);
     neumann_sur = @(x,y) 0;
     
@@ -141,7 +142,7 @@ elseif PRESET == 5
 elseif PRESET == 6
     
     % Boundary conditions
-    dirichlet = @(x,y) 0.5;
+    dirichlet = @(x,y) 0.0;
     neumann_top = @(x,y) 0;
     neumann_sur = @(x,y) -413;
     
@@ -150,7 +151,7 @@ elseif PRESET == 6
 elseif PRESET == 7
     
     % Boundary conditions
-    dirichlet = @(x,y) 0.5;
+    dirichlet = @(x,y) 0.0;
     neumann_top = @(x,y) BC_normal_FD(x,y);
     neumann_sur = @(x,y) -413;
     
@@ -159,7 +160,7 @@ elseif PRESET == 7
 elseif PRESET == 8
     
     % Boundary conditions
-    dirichlet = @(x,y) 0.5;
+    dirichlet = @(x,y) 0.0;
     neumann_top = @(x,y) 0;
     neumann_sur = @(x,y) BC_normal_FD(x,y);
     
@@ -168,7 +169,7 @@ elseif PRESET == 8
 elseif PRESET == 9
 
     % Boundary conditions
-    dirichlet = @(x,y) 0.5;
+    dirichlet = @(x,y) 0.0;
     neumann_top = @(x,y) -413;
     neumann_sur = @(x,y) BC_normal_FD(x,y);
     
@@ -184,7 +185,7 @@ elseif PRESET == 10
     D = 0.25; % m^2/s
     
     % Boundary conditions
-    dirichlet = @(x,y) 0.5;
+    dirichlet = @(x,y) 0.0;
     neumann_top = @(x,y) -0.5;
     neumann_sur = @(x,y) -0.5;
     
@@ -200,7 +201,7 @@ elseif PRESET == 11
     D = 0.25; % m^2/s
     
     % Boundary conditions
-    dirichlet = @(x,y) 0.5;
+    dirichlet = @(x,y) 0.0;
     neumann_top = @(x,y) -0.5;
     neumann_sur = @(x,y) -0.5;
     
@@ -262,22 +263,45 @@ end
 
 %% Boundary conditions
 
-% Imposing total flux boundary conditions
-start_x = nodes_x(1,1);
-start_y = nodes_y(1,1);
-for j=2:Ny-1 % Right edge of domain (top of thermal)
-    A((j-1)*Nx+Nx,:) = 0;
-    % Backwards difference to approximate derivative
-    A((j-1)*Nx+Nx,(j-1)*Nx+Nx-1) = -D;
-    A((j-1)*Nx+Nx,(j-1)*Nx+Nx) = -hx*velocity(start_x+(Nx-1)*hx, start_y+(j-1)*hy) + D;
-    F((j-1)*Nx+Nx) = hx*total_flux(start_x+(Nx-1)*hx, start_y+(j-1)*hy);
-end
-for j=2:Ny-1 % Left edge of domain (surface)
-    A((j-1)*Nx+1,:) = 0;
-    % Forwards difference to approximate derivative
-    A((j-1)*Nx+1,(j-1)*Nx+1) = hx*velocity(start_x,start_y+(j-1)*hy) + D;
-    A((j-1)*Nx+1,(j-1)*Nx+1+1) = -1*D;
-    F((j-1)*Nx+1) = hx*total_flux(start_x,start_y+(j-1)*hy);
+if BC_TYPE == "n"
+    % Imposing Neumann boundary conditions
+    start_x = nodes_x(1,1);
+    start_y = nodes_y(1,1);
+    for j=2:Ny-1 % Right edge of domain (top of thermal)
+        A((j-1)*Nx+Nx,:) = 0;
+        % Backwards difference to approximate derivative
+        A((j-1)*Nx+Nx,(j-1)*Nx+Nx-1) = -1;
+        A((j-1)*Nx+Nx,(j-1)*Nx+Nx) = 1;
+        F((j-1)*Nx+Nx) = hx*neumann_top(start_x+(Nx-1)*hx, start_y+(j-1)*hy);
+    end
+    for j=2:Ny-1 % Left edge of domain (surface)
+        A((j-1)*Nx+1,:) = 0;
+        % Forwards difference to approximate derivative
+        A((j-1)*Nx+1,(j-1)*Nx+1) = -1;
+        A((j-1)*Nx+1,(j-1)*Nx+1+1) = 1;
+        F((j-1)*Nx+1) = hx*neumann_sur(start_x+(1-1)*hx, start_y+(j-1)*hy);
+    end
+elseif BC_TYPE == "t"
+    % Imposing total flux boundary conditions
+    start_x = nodes_x(1,1);
+    start_y = nodes_y(1,1);
+    for j=2:Ny-1 % Right edge of domain (top of thermal)
+        A((j-1)*Nx+Nx,:) = 0;
+        % Backwards difference to approximate derivative
+        A((j-1)*Nx+Nx,(j-1)*Nx+Nx-1) = -D;
+        A((j-1)*Nx+Nx,(j-1)*Nx+Nx) = -hx*velocity(start_x+(Nx-1)*hx, start_y+(j-1)*hy) + D;
+        F((j-1)*Nx+Nx) = hx*total_flux(start_x+(Nx-1)*hx, start_y+(j-1)*hy);
+    end
+    for j=2:Ny-1 % Left edge of domain (surface)
+        A((j-1)*Nx+1,:) = 0;
+        % Forwards difference to approximate derivative
+        A((j-1)*Nx+1,(j-1)*Nx+1) = hx*velocity(start_x,start_y+(j-1)*hy) + D;
+        A((j-1)*Nx+1,(j-1)*Nx+1+1) = -1*D;
+        F((j-1)*Nx+1) = hx*total_flux(start_x,start_y+(j-1)*hy);
+    end
+else
+    fprintf("Error: choose 'n' or 't' for BC_TYPE\n");
+    return;
 end
 
 % Imposing Dirichlet boundary conditions
