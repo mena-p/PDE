@@ -41,7 +41,7 @@ f = @(x,y) 0; % zero since there is no chemical reaction
 % Diffusivity of water vapor in air
 D = 0.000025; % m^2/s
 
-%% Boundary conditions
+%% Boundary condition functions
 % These only apply if you choose PRESET 0
 % Any function of x, y that returns a scalar can be used as a 
 % condition. Don't forget to set the correct flag BC_TYPE!
@@ -207,7 +207,7 @@ elseif PRESET == 11
     
     velocity = @(height,position) 1;
 end
-%% Set up
+%% Grid and velocity set up
 
 % Grid spacing
 hx = (intx(2)-intx(1))/nx;
